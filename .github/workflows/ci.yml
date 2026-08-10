@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  analyse-en-test:
+    name: Analyse en test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Flutter installeren
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Pakketten ophalen
+        run: flutter pub get
+
+      - name: Formattering controleren
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Statische analyse
+        run: flutter analyze
+
+      - name: Tests draaien
+        run: flutter test
+
+  build-web:
+    name: Webbuild
+    runs-on: ubuntu-latest
+    needs: analyse-en-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build web --release
+      - name: Webbuild bewaren
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web
+
+  build-android:
+    name: Androidbuild
+    runs-on: ubuntu-latest
+    needs: analyse-en-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build apk --release
+      - name: APK bewaren
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
