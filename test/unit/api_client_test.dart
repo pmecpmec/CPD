@@ -95,6 +95,159 @@ void main() {
     },
   );
 
+  test(
+    'geeft de foutmelding uit het error-veld door aan de gebruiker',
+    () async {
+      final client = maakClient(
+        MockClient(
+          (_) async => http.Response(
+            jsonEncode({
+              'message': 'Error',
+              'data': null,
+              'error': ['Username already taken'],
+            }),
+            400,
+          ),
+        ),
+      );
+
+      await expectLater(
+        client.post('/auth/register'),
+        throwsA(
+          isA<ValidatieException>().having(
+            (e) => e.bericht,
+            'bericht',
+            'Username already taken',
+          ),
+        ),
+      );
+    },
+  );
+
+  test('zet meerdere meldingen elk op een eigen regel', () async {
+    final client = maakClient(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'message': 'Error',
+            'data': null,
+            'error': ['Username already taken', 'Password too short'],
+          }),
+          400,
+        ),
+      ),
+    );
+
+    await expectLater(
+      client.post('/auth/register'),
+      throwsA(
+        isA<ValidatieException>().having(
+          (e) => e.bericht,
+          'bericht',
+          'Username already taken\nPassword too short',
+        ),
+      ),
+    );
+  });
+
+  test('leest ook een losse tekst en het veld errors', () async {
+    final losseTekst = maakClient(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'message': 'Error',
+            'data': null,
+            'error': 'Team not found',
+          }),
+          400,
+        ),
+      ),
+    );
+    await expectLater(
+      losseTekst.get('/teams/1'),
+      throwsA(
+        isA<ValidatieException>().having(
+          (e) => e.bericht,
+          'bericht',
+          'Team not found',
+        ),
+      ),
+    );
+
+    final meervoud = maakClient(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'message': 'Error',
+            'data': null,
+            'errors': ['Team not found'],
+          }),
+          400,
+        ),
+      ),
+    );
+    await expectLater(
+      meervoud.get('/teams/1'),
+      throwsA(
+        isA<ValidatieException>().having(
+          (e) => e.bericht,
+          'bericht',
+          'Team not found',
+        ),
+      ),
+    );
+  });
+
+  test(
+    'valt terug op een algemene melding zonder bruikbaar foutveld',
+    () async {
+      for (final body in [
+        jsonEncode({'message': 'Error', 'data': null, 'error': <String>[]}),
+        jsonEncode({'message': 'Error', 'data': null, 'error': null}),
+        jsonEncode({'message': 'Error', 'data': null}),
+        '',
+      ]) {
+        final client = maakClient(
+          MockClient((_) async => http.Response(body, 400)),
+        );
+
+        await expectLater(
+          client.post('/auth/register'),
+          throwsA(
+            isA<ValidatieException>().having(
+              (e) => e.bericht,
+              'bericht',
+              'De ingevoerde gegevens kloppen niet.',
+            ),
+          ),
+          reason: 'antwoord: "$body"',
+        );
+      }
+    },
+  );
+
+  test('gebruikt message als er geen foutveld is', () async {
+    final client = maakClient(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode({'message': 'Validation failed', 'data': null}),
+          422,
+        ),
+      ),
+    );
+
+    await expectLater(
+      client.post('/teams'),
+      throwsA(
+        isA<ValidatieException>().having(
+          (e) => e.bericht,
+          'bericht',
+          'Validation failed',
+        ),
+      ),
+    );
+  });
+
   test('vertaalt 403 en 404 naar de bijbehorende fouten', () async {
     final verboden = maakClient(
       MockClient((_) async => http.Response('', 403)),

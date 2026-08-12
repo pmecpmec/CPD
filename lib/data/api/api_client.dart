@@ -80,7 +80,7 @@ class ApiClient {
   ///
   /// De API verpakt élk antwoord in dezelfde envelop:
   /// `{"message": "Success", "data": {...}, "error": null}`, en bij een fout
-  /// `{"message": "Error", "data": null, "errors": ["..."]}`.
+  /// `{"message": "Error", "data": null, "error": ["..."]}`.
   /// Die envelop wordt hier uitgepakt, zodat de repositories alleen het echte
   /// object zien en niets van dit patroon hoeven te weten.
   dynamic _verwerk(http.Response antwoord, {required bool metToken}) {
@@ -135,22 +135,21 @@ class ApiClient {
   }
 
   /// Haalt de leesbare foutmelding uit het antwoord. De API zet die in
-  /// `errors`, een lijst met teksten; `message` bevat alleen "Error".
+  /// `error`, een lijst met teksten; `message` bevat dan alleen "Error".
+  ///
+  /// Zie `docs/api-waargenomen-gedrag.md`, stap 3, 21 en 22: dat is de vorm die
+  /// de server echt stuurt. De vormen die de documentatie noemt — dezelfde
+  /// inhoud onder `errors`, of één losse tekst in plaats van een lijst — worden
+  /// ook gelezen, zodat de melding niet verloren gaat als de server afwijkt.
   String? _serverMelding(String body) {
     if (body.isEmpty) return null;
     try {
       final data = jsonDecode(body);
       if (data is! Map<String, dynamic>) return null;
 
-      final fouten = data['errors'];
-      if (fouten is List && fouten.isNotEmpty) {
-        final teksten = fouten.whereType<String>();
-        if (teksten.isNotEmpty) return teksten.join(' ');
-      }
-
-      for (final sleutel in ['error', 'detail']) {
-        final waarde = data[sleutel];
-        if (waarde is String && waarde.isNotEmpty) return waarde;
+      for (final sleutel in const ['error', 'errors', 'detail']) {
+        final melding = _leesFoutveld(data[sleutel]);
+        if (melding != null) return melding;
       }
 
       final melding = data['message'];
@@ -159,6 +158,26 @@ class ApiClient {
       }
     } on FormatException {
       return null;
+    }
+    return null;
+  }
+
+  /// Leest één foutveld: een losse tekst, of een lijst met teksten. Meerdere
+  /// meldingen komen elk op een eigen regel, want ze achter elkaar plakken
+  /// levert één onleesbare zin op. Levert `null` bij een leeg of afwijkend veld,
+  /// zodat de aanroeper verder zoekt of op een algemene melding terugvalt.
+  String? _leesFoutveld(dynamic waarde) {
+    if (waarde is String) {
+      final tekst = waarde.trim();
+      return tekst.isEmpty ? null : tekst;
+    }
+    if (waarde is List) {
+      final teksten = waarde
+          .whereType<String>()
+          .map((tekst) => tekst.trim())
+          .where((tekst) => tekst.isNotEmpty);
+      if (teksten.isEmpty) return null;
+      return teksten.join('\n');
     }
     return null;
   }
