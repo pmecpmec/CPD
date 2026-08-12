@@ -14,7 +14,7 @@ import 'package:http/testing.dart';
 ///
 /// De antwoorden hieronder volgen de envelop die de API gebruikt:
 ///   succes  {"message": "Success", "data": {...}, "error": null}
-///   fout    {"message": "Error", "data": null, "errors": ["..."]}
+///   fout    {"message": "Error", "data": null, "error": ["..."]}
 void main() {
   late GeheugenTokenStore tokenStore;
 
@@ -22,7 +22,7 @@ void main() {
       jsonEncode({'message': 'Success', 'data': data, 'error': null});
 
   String fout(List<String> meldingen) =>
-      jsonEncode({'message': 'Error', 'data': null, 'errors': meldingen});
+      jsonEncode({'message': 'Error', 'data': null, 'error': meldingen});
 
   ApiAuthRepository maakRepository(MockClient httpClient) {
     tokenStore = GeheugenTokenStore();
@@ -138,7 +138,7 @@ void main() {
       );
     });
 
-    test('neemt de melding uit het errors-veld over', () async {
+    test('neemt de melding uit het error-veld over', () async {
       final repo = maakRepository(
         MockClient(
           (_) async => http.Response(fout(['Username already taken']), 400),
