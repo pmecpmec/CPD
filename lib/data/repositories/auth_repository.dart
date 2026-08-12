@@ -46,20 +46,27 @@ class ApiAuthRepository implements AuthRepository {
       throw const OngeldigeInlogException();
     }
 
+    // De ApiClient heeft de envelop al uitgepakt, dus hier staat het
+    // `data`-object: {"id": 1, "name": "pedro", "token": "eyJ..."}.
     if (antwoord is! Map<String, dynamic>) {
       throw const ServerException('Onverwacht antwoord bij het inloggen.');
     }
 
-    final token = _zoekToken(antwoord);
-    if (token == null) {
+    final token = antwoord['token'];
+    if (token is! String || token.isEmpty) {
       throw const ServerException(
         'De server stuurde geen toegangstoken terug.',
       );
     }
     await _tokenStore.schrijfToken(token);
 
-    final id = _zoekGebruikerId(antwoord);
-    if (id != null) await _tokenStore.schrijfGebruikerId(id);
+    final id = antwoord['id'];
+    if (id is int) {
+      await _tokenStore.schrijfGebruikerId(id);
+    } else if (id is String) {
+      final gelezen = int.tryParse(id);
+      if (gelezen != null) await _tokenStore.schrijfGebruikerId(gelezen);
+    }
   }
 
   @override
@@ -73,28 +80,4 @@ class ApiAuthRepository implements AuthRepository {
 
   @override
   Future<int?> huidigeGebruikerId() => _tokenStore.leesGebruikerId();
-
-  /// De documentatie legt de naam van het tokenveld niet vast. Deze functie
-  /// probeert de gangbare varianten. Zodra het echte antwoord bekend is, mag
-  /// dit vereenvoudigd worden tot de ene juiste sleutel.
-  String? _zoekToken(Map<String, dynamic> data) {
-    for (final sleutel in ['token', 'accessToken', 'access_token', 'jwt']) {
-      final waarde = data[sleutel];
-      if (waarde is String && waarde.isNotEmpty) return waarde;
-    }
-    final genest = data['data'];
-    if (genest is Map<String, dynamic>) return _zoekToken(genest);
-    return null;
-  }
-
-  int? _zoekGebruikerId(Map<String, dynamic> data) {
-    for (final sleutel in ['userId', 'user_id', 'id']) {
-      final waarde = data[sleutel];
-      if (waarde is int) return waarde;
-      if (waarde is String) return int.tryParse(waarde);
-    }
-    final gebruiker = data['user'];
-    if (gebruiker is Map<String, dynamic>) return _zoekGebruikerId(gebruiker);
-    return null;
-  }
 }

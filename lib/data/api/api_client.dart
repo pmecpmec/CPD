@@ -52,12 +52,8 @@ class ApiClient {
     if (body != null) headers['Content-Type'] = 'application/json';
 
     final token = await _tokenStore.leesToken();
-    if (token != null && token.isNotEmpty) {
-      // Aangenomen schema is Bearer, wat de Authorize-knop in de Swagger-pagina
-      // suggereert. Controleer dit bij de eerste aanroep tegen de echte API en
-      // pas het hier aan als het anders blijkt te zijn.
-      headers['Authorization'] = 'Bearer $token';
-    }
+    final metToken = token != null && token.isNotEmpty;
+    if (metToken) headers['Authorization'] = 'Bearer $token';
 
     late final http.Response antwoord;
     try {
@@ -77,19 +73,28 @@ class ApiClient {
       throw const NetwerkException();
     }
 
-    return _verwerk(antwoord);
+    return _verwerk(antwoord, metToken: metToken);
   }
 
-  dynamic _verwerk(http.Response antwoord) {
+  /// Vertaalt het HTTP-antwoord naar bruikbare data of naar een fout.
+  ///
+  /// De API verpakt élk antwoord in dezelfde envelop:
+  /// `{"message": "Success", "data": {...}, "error": null}`, en bij een fout
+  /// `{"message": "Error", "data": null, "errors": ["..."]}`.
+  /// Die envelop wordt hier uitgepakt, zodat de repositories alleen het echte
+  /// object zien en niets van dit patroon hoeven te weten.
+  dynamic _verwerk(http.Response antwoord, {required bool metToken}) {
     final code = antwoord.statusCode;
 
     if (code >= 200 && code < 300) {
       if (antwoord.body.isEmpty) return null;
+      final dynamic data;
       try {
-        return jsonDecode(antwoord.body);
+        data = jsonDecode(antwoord.body);
       } on FormatException {
         throw const ServerException('Onverwacht antwoord van de server.');
       }
+      return _pakUit(data);
     }
 
     final melding = _serverMelding(antwoord.body);
@@ -101,10 +106,16 @@ class ApiClient {
           melding ?? 'De ingevoerde gegevens kloppen niet.',
         );
       case 401:
-        bijSessieVerlopen?.call();
-        throw const SessieVerlopenException();
+        // Alleen een echt verlopen sessie melden. Een afgewezen inlogpoging
+        // geeft ook 401, maar daar is nog geen sessie om te verliezen.
+        if (metToken) bijSessieVerlopen?.call();
+        throw SessieVerlopenException(
+          melding ?? const SessieVerlopenException().bericht,
+        );
       case 403:
-        throw const GeenRechtenException();
+        throw GeenRechtenException(
+          melding ?? const GeenRechtenException().bericht,
+        );
       case 404:
         throw const NietGevondenException();
       default:
@@ -112,16 +123,39 @@ class ApiClient {
     }
   }
 
-  /// Haalt indien mogelijk een leesbare melding uit het antwoord van de server.
+  /// Haalt het `data`-veld uit de envelop. Antwoorden zonder envelop worden
+  /// ongewijzigd doorgegeven, zodat een afwijkend endpoint niet stukloopt.
+  dynamic _pakUit(dynamic data) {
+    if (data is Map<String, dynamic> &&
+        data.containsKey('data') &&
+        data.containsKey('message')) {
+      return data['data'];
+    }
+    return data;
+  }
+
+  /// Haalt de leesbare foutmelding uit het antwoord. De API zet die in
+  /// `errors`, een lijst met teksten; `message` bevat alleen "Error".
   String? _serverMelding(String body) {
     if (body.isEmpty) return null;
     try {
       final data = jsonDecode(body);
-      if (data is Map<String, dynamic>) {
-        for (final sleutel in ['message', 'error', 'detail']) {
-          final waarde = data[sleutel];
-          if (waarde is String && waarde.isNotEmpty) return waarde;
-        }
+      if (data is! Map<String, dynamic>) return null;
+
+      final fouten = data['errors'];
+      if (fouten is List && fouten.isNotEmpty) {
+        final teksten = fouten.whereType<String>();
+        if (teksten.isNotEmpty) return teksten.join(' ');
+      }
+
+      for (final sleutel in ['error', 'detail']) {
+        final waarde = data[sleutel];
+        if (waarde is String && waarde.isNotEmpty) return waarde;
+      }
+
+      final melding = data['message'];
+      if (melding is String && melding.isNotEmpty && melding != 'Error') {
+        return melding;
       }
     } on FormatException {
       return null;

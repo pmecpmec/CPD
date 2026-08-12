@@ -1,9 +1,12 @@
 /// Datamodellen voor de Team Management API.
 ///
-/// LET OP — de veldnamen hieronder zijn afgeleid van de OpenAPI-documentatie en
-/// zijn nog niet tegen een echt antwoord gecontroleerd. Draai de stappen uit
-/// `SPRINT-1.md`, paragraaf 1, en corrigeer daarna deze klassen. Zolang dat niet
-/// is gebeurd, staat er bij elk onzeker veld een opmerking.
+/// De klassen krijgen het uitgepakte `data`-object binnen; de envelop van de
+/// API wordt in `ApiClient` afgehandeld.
+///
+/// LET OP — `User` is gecontroleerd tegen het inlogantwoord. De veldnamen van
+/// `Team`, `Event` en `Match` komen uit de OpenAPI-documentatie en zijn nog
+/// niet tegen een echt antwoord gehouden; bij die velden staat een opmerking.
+/// Draai `dart run tool/api_verkenning.dart` om ze te bevestigen.
 library;
 
 /// Een gebruiker van de applicatie.

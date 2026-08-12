@@ -28,10 +28,10 @@ class ApiTeamRepository implements TeamRepository {
 
   @override
   Future<List<Team>> haalTeams() async {
+    // De ApiClient pakt de envelop uit, dus hier komt de lijst rechtstreeks.
     final antwoord = await _client.get('/teams');
-    final lijst = antwoord is List ? antwoord : (antwoord?['data'] as List?);
-    if (lijst == null) return const [];
-    return lijst
+    if (antwoord is! List) return const [];
+    return antwoord
         .whereType<Map>()
         .map((e) => Team.fromJson(Map<String, dynamic>.from(e)))
         .toList();
