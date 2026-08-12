@@ -5,6 +5,7 @@ import 'core/theme.dart';
 import 'data/api/api_client.dart';
 import 'data/api/token_store.dart';
 import 'data/repositories/auth_repository.dart';
+import 'data/repositories/event_repository.dart';
 import 'data/repositories/team_repository.dart';
 import 'features/auth/auth_controller.dart';
 import 'features/auth/login_screen.dart';
@@ -44,6 +45,9 @@ class TeamplannerApp extends StatelessWidget {
         ),
         Provider<TeamRepository>(
           create: (context) => ApiTeamRepository(context.read<ApiClient>()),
+        ),
+        Provider<EventRepository>(
+          create: (context) => ApiEventRepository(context.read<ApiClient>()),
         ),
         ChangeNotifierProvider<AuthController>(
           create: (context) {
