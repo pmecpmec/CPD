@@ -23,9 +23,10 @@ void main() {
   String fout(List<String> meldingen) =>
       jsonEncode({'message': 'Error', 'data': null, 'errors': meldingen});
 
-  ApiEventRepository maakRepository(MockClient httpClient) => ApiEventRepository(
-    ApiClient(httpClient: httpClient, tokenStore: GeheugenTokenStore()),
-  );
+  ApiEventRepository maakRepository(MockClient httpClient) =>
+      ApiEventRepository(
+        ApiClient(httpClient: httpClient, tokenStore: GeheugenTokenStore()),
+      );
 
   /// Een antwoord zoals `GET /events` het volgens de documentatie teruggeeft.
   Map<String, dynamic> eventJson({
@@ -129,7 +130,10 @@ void main() {
         MockClient((verzoek) async {
           methode = verzoek.method;
           verzonden = jsonDecode(verzoek.body) as Map<String, dynamic>;
-          return http.Response(succes(eventJson(id: 5, title: 'Training')), 201);
+          return http.Response(
+            succes(eventJson(id: 5, title: 'Training')),
+            201,
+          );
         }),
       );
 
@@ -178,27 +182,30 @@ void main() {
       expect(event.location, isNull);
     });
 
-    test('geeft een GeenRechtenException als een lid geen event mag maken', () async {
-      final repo = maakRepository(
-        MockClient((_) async => http.Response(fout(['Forbidden']), 403)),
-      );
+    test(
+      'geeft een GeenRechtenException als een lid geen event mag maken',
+      () async {
+        final repo = maakRepository(
+          MockClient((_) async => http.Response(fout(['Forbidden']), 403)),
+        );
 
-      await expectLater(
-        repo.maakEvent(
-          teamId: 3,
-          titel: 'Training',
-          start: DateTime.utc(2026, 9, 1, 10),
-          eind: DateTime.utc(2026, 9, 1, 12),
-        ),
-        throwsA(
-          isA<GeenRechtenException>().having(
-            (e) => e.bericht,
-            'bericht',
-            'Forbidden',
+        await expectLater(
+          repo.maakEvent(
+            teamId: 3,
+            titel: 'Training',
+            start: DateTime.utc(2026, 9, 1, 10),
+            eind: DateTime.utc(2026, 9, 1, 12),
           ),
-        ),
-      );
-    });
+          throwsA(
+            isA<GeenRechtenException>().having(
+              (e) => e.bericht,
+              'bericht',
+              'Forbidden',
+            ),
+          ),
+        );
+      },
+    );
   });
 
   group('wijzigEvent en verwijderEvent', () {
@@ -211,7 +218,10 @@ void main() {
           methode = verzoek.method;
           aangeroepen = verzoek.url;
           verzonden = jsonDecode(verzoek.body) as Map<String, dynamic>;
-          return http.Response(succes(eventJson(id: 7, title: 'Nieuwe titel')), 200);
+          return http.Response(
+            succes(eventJson(id: 7, title: 'Nieuwe titel')),
+            200,
+          );
         }),
       );
 

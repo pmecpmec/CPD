@@ -31,32 +31,36 @@ void main() {
   }
 
   group('login', () {
-    test('bewaart het token en het gebruikers-id bij een geslaagde poging', () async {
-      final repo = maakRepository(
-        MockClient((verzoek) async {
-          expect(verzoek.url.path, endsWith('/auth/login'));
-          expect(jsonDecode(verzoek.body), {
-            'name': 'pedro',
-            'password': 'geheim',
-          });
-          return http.Response(
-            succes({'id': 7, 'name': 'pedro', 'token': 'abc123'}),
-            200,
-          );
-        }),
-      );
+    test(
+      'bewaart het token en het gebruikers-id bij een geslaagde poging',
+      () async {
+        final repo = maakRepository(
+          MockClient((verzoek) async {
+            expect(verzoek.url.path, endsWith('/auth/login'));
+            expect(jsonDecode(verzoek.body), {
+              'name': 'pedro',
+              'password': 'geheim',
+            });
+            return http.Response(
+              succes({'id': 7, 'name': 'pedro', 'token': 'abc123'}),
+              200,
+            );
+          }),
+        );
 
-      await repo.login(naam: 'pedro', wachtwoord: 'geheim');
+        await repo.login(naam: 'pedro', wachtwoord: 'geheim');
 
-      expect(await tokenStore.leesToken(), 'abc123');
-      expect(await tokenStore.leesGebruikerId(), 7);
-      expect(await repo.heeftSessie(), isTrue);
-    });
+        expect(await tokenStore.leesToken(), 'abc123');
+        expect(await tokenStore.leesGebruikerId(), 7);
+        expect(await repo.heeftSessie(), isTrue);
+      },
+    );
 
     test('geeft een duidelijke fout bij verkeerde inloggegevens', () async {
       final repo = maakRepository(
         MockClient(
-          (_) async => http.Response(fout(['Invalid username or password']), 401),
+          (_) async =>
+              http.Response(fout(['Invalid username or password']), 401),
         ),
       );
 
@@ -69,7 +73,9 @@ void main() {
 
     test('meldt het wanneer de server geen token teruggeeft', () async {
       final repo = maakRepository(
-        MockClient((_) async => http.Response(succes({'id': 1, 'name': 'x'}), 200)),
+        MockClient(
+          (_) async => http.Response(succes({'id': 1, 'name': 'x'}), 200),
+        ),
       );
 
       await expectLater(
@@ -116,7 +122,9 @@ void main() {
 
   group('foutafhandeling', () {
     test('vertaalt een serverfout naar een leesbare melding', () async {
-      final repo = maakRepository(MockClient((_) async => http.Response('', 500)));
+      final repo = maakRepository(
+        MockClient((_) async => http.Response('', 500)),
+      );
 
       await expectLater(
         repo.registreer(naam: 'a', wachtwoord: 'b'),
@@ -132,7 +140,9 @@ void main() {
 
     test('neemt de melding uit het errors-veld over', () async {
       final repo = maakRepository(
-        MockClient((_) async => http.Response(fout(['Username already taken']), 400)),
+        MockClient(
+          (_) async => http.Response(fout(['Username already taken']), 400),
+        ),
       );
 
       await expectLater(

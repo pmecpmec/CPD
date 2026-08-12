@@ -34,7 +34,8 @@ class TeamplannerApp extends StatelessWidget {
       providers: [
         Provider<TokenStore>(create: (_) => tokenStore ?? SecureTokenStore()),
         Provider<ApiClient>(
-          create: (context) => ApiClient(tokenStore: context.read<TokenStore>()),
+          create: (context) =>
+              ApiClient(tokenStore: context.read<TokenStore>()),
           dispose: (_, client) => client.sluit(),
         ),
         Provider<AuthRepository>(

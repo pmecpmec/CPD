@@ -46,7 +46,8 @@ class _TeamsScreenState extends State<TeamsScreen> {
         content: Text(
           gelukt
               ? 'Team "${gegevens.naam}" aangemaakt.'
-              : controller.foutmelding ?? 'Het team kon niet worden aangemaakt.',
+              : controller.foutmelding ??
+                    'Het team kon niet worden aangemaakt.',
         ),
       ),
     );
@@ -145,7 +146,9 @@ class _Inhoud extends StatelessWidget {
           child: ListTile(
             leading: CircleAvatar(
               child: Text(
-                team.name.isEmpty ? '?' : team.name.substring(0, 1).toUpperCase(),
+                team.name.isEmpty
+                    ? '?'
+                    : team.name.substring(0, 1).toUpperCase(),
               ),
             ),
             title: Text(team.name),
@@ -185,10 +188,9 @@ class _NieuwTeamDialoogState extends State<_NieuwTeamDialoog> {
 
   void _bevestig() {
     if (!_formSleutel.currentState!.validate()) return;
-    Navigator.of(context).pop((
-      naam: _naam.text.trim(),
-      beschrijving: _beschrijving.text.trim(),
-    ));
+    Navigator.of(
+      context,
+    ).pop((naam: _naam.text.trim(), beschrijving: _beschrijving.text.trim()));
   }
 
   @override

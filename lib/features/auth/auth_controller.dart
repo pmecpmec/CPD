@@ -44,14 +44,12 @@ class AuthController extends ChangeNotifier {
 
   /// Registreert en logt daarna meteen in, zodat de gebruiker niet twee keer
   /// hetzelfde hoeft in te tikken.
-  Future<bool> registreer({
-    required String naam,
-    required String wachtwoord,
-  }) => _voerUit(() async {
-    await _repository.registreer(naam: naam, wachtwoord: wachtwoord);
-    await _repository.login(naam: naam, wachtwoord: wachtwoord);
-    _status = SessieStatus.ingelogd;
-  });
+  Future<bool> registreer({required String naam, required String wachtwoord}) =>
+      _voerUit(() async {
+        await _repository.registreer(naam: naam, wachtwoord: wachtwoord);
+        await _repository.login(naam: naam, wachtwoord: wachtwoord);
+        _status = SessieStatus.ingelogd;
+      });
 
   Future<void> logout() async {
     await _repository.logout();

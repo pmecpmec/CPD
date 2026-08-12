@@ -63,30 +63,37 @@ void main() {
     expect(await client.get('/iets'), {'id': 9});
   });
 
-  test('meldt een verlopen sessie alleen wanneer er een token meeging', () async {
-    var gemeld = false;
-    final zonderToken = maakClient(
-      MockClient((_) async => http.Response('{"message":"Error"}', 401)),
-    )..bijSessieVerlopen = () => gemeld = true;
+  test(
+    'meldt een verlopen sessie alleen wanneer er een token meeging',
+    () async {
+      var gemeld = false;
+      final zonderToken = maakClient(
+        MockClient((_) async => http.Response('{"message":"Error"}', 401)),
+      )..bijSessieVerlopen = () => gemeld = true;
 
-    await expectLater(
-      zonderToken.post('/auth/login'),
-      throwsA(isA<SessieVerlopenException>()),
-    );
-    expect(gemeld, isFalse, reason: 'zonder token is er geen sessie verlopen');
+      await expectLater(
+        zonderToken.post('/auth/login'),
+        throwsA(isA<SessieVerlopenException>()),
+      );
+      expect(
+        gemeld,
+        isFalse,
+        reason: 'zonder token is er geen sessie verlopen',
+      );
 
-    var gemeldMet = false;
-    final metToken = maakClient(
-      MockClient((_) async => http.Response('{"message":"Error"}', 401)),
-      token: 'abc',
-    )..bijSessieVerlopen = () => gemeldMet = true;
+      var gemeldMet = false;
+      final metToken = maakClient(
+        MockClient((_) async => http.Response('{"message":"Error"}', 401)),
+        token: 'abc',
+      )..bijSessieVerlopen = () => gemeldMet = true;
 
-    await expectLater(
-      metToken.get('/teams'),
-      throwsA(isA<SessieVerlopenException>()),
-    );
-    expect(gemeldMet, isTrue);
-  });
+      await expectLater(
+        metToken.get('/teams'),
+        throwsA(isA<SessieVerlopenException>()),
+      );
+      expect(gemeldMet, isTrue);
+    },
+  );
 
   test('vertaalt 403 en 404 naar de bijbehorende fouten', () async {
     final verboden = maakClient(
@@ -97,7 +104,9 @@ void main() {
       throwsA(isA<GeenRechtenException>()),
     );
 
-    final onbekend = maakClient(MockClient((_) async => http.Response('', 404)));
+    final onbekend = maakClient(
+      MockClient((_) async => http.Response('', 404)),
+    );
     await expectLater(
       onbekend.get('/teams/999'),
       throwsA(isA<NietGevondenException>()),

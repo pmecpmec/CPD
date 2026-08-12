@@ -94,7 +94,10 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Inloggen'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Gebruikersnaam of wachtwoord klopt niet.'), findsOneWidget);
+    expect(
+      find.text('Gebruikersnaam of wachtwoord klopt niet.'),
+      findsOneWidget,
+    );
     expect(controller.isIngelogd, isFalse);
   });
 }
