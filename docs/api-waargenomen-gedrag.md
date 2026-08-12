@@ -670,13 +670,165 @@ Bruikbaar als testcase voor FR-03: de app hoort hierop de sessie te wissen en he
 
 Eerlijk vermelden hoort erbij; dit zijn de gaten die een volgende taak moet dichten.
 
-- **`PUT` en `DELETE` op teams, events en matches** zijn niet aangeroepen. Het antwoordformaat daarvan
-  is dus onbekend, ook of een `DELETE` een leeg antwoord of het verwijderde object teruggeeft.
-- **`POST /teams/{id}/removeUser` en `/leave`** zijn niet aangeroepen. Nodig voor FR-07 en FR-08 (T-03).
+- **`PUT` en `DELETE` op events en matches** zijn niet aangeroepen. Het antwoordformaat daarvan is dus
+  onbekend, ook of een `DELETE` een leeg antwoord of het verwijderde object teruggeeft. Voor teams is
+  dat inmiddels wél gemeten, zie de tweede meting hieronder.
 - **De statusovergang `accepted → canceled`** is niet uitgeprobeerd, en `canceled` komt nergens in de
   bestaande gegevens voor. `InviteStatus` kan hem lezen, maar de app leunt er niet op.
-- **Wat de API doet bij een verboden actie** (403) is niet gemeten: er is geen poging gedaan om als
-  gewoon lid een event aan te maken of een lid te verwijderen. Of de API dat afwijst met 403 en met welke
-  tekst, is dus nog onbekend — terwijl de app wel `GeenRechtenException` kent.
-- **Dubbel toevoegen van een lid** is niet gemeten, terwijl T-05 dat geval expliciet moet opvangen.
 - **Een verlopen token bij een echt endpoint**: alleen `/dev/expired-token` is gebruikt.
+
+---
+
+# Tweede meting — de ledenacties van een team
+
+Meting van **12 augustus 2026**, uitgevoerd met `dart run tool/api_verkenning_leden.dart`. Deze meting
+hoort bij taak **T-03** en vult de gaten die T-01 openliet: `removeUser`, `leave`, `DELETE /teams/{id}`
+en het antwoord op een verboden actie. Dat zijn precies de aanroepen achter FR-07 en FR-08.
+
+| Gegeven | Waarde in deze meting |
+|---|---|
+| Gebruiker A (beheerder) | `ledentest839267a`, id **94** |
+| Gebruiker B (gewoon lid) | `ledentest839267b`, id **95** |
+| Team | id **307** |
+
+## Samenvatting
+
+| Vraag | Antwoord |
+|---|---|
+| Wat geeft `removeUser` terug? | **200** met het bijgewerkte team in `data` — dezelfde vorm als `addUser`. Een extra `GET` is niet nodig |
+| Wat geeft `leave` terug? | **200** met het bijgewerkte team, `message` = "You have successfully left the team" |
+| Wat doet de API bij een verboden actie? | **403** met een tekst in `error`, bijvoorbeeld "You are not authorized to remove users from this team" |
+| Mag de beheerder zelf vertrekken? | **Nee.** 400 met "The team owner cannot remove themselves from the team" |
+| Wat geeft `DELETE /teams/{id}` terug? | **200** met `data: null`; daarna geeft `GET /teams/{id}` een 404 |
+| Ziet een niet-lid de ledenlijst? | **Ja**, `GET /teams/{id}` geeft ook aan een niet-lid het volledige team, inclusief `members` |
+
+De 403-teksten bevestigen dat `GeenRechtenException` de juiste vertaling is. Let op: de tekst zelf komt
+niet bij de gebruiker aan, omdat het foutveld `error` heet en een **lijst** bevat, terwijl
+`ApiClient._serverMelding` in `error` een tekst verwacht. De app valt daardoor terug op de standaardtekst
+uit `core/errors.dart`. Dat is dezelfde bevinding als in de eerste meting en wordt in een aparte taak
+opgelost.
+
+## 7 tot en met 9. Verboden acties als gewoon lid — 403
+
+`POST /teams/307/removeUser` met `{"userId":94}` als gebruiker B:
+
+```json
+{
+  "message": "Error",
+  "data": null,
+  "error": [
+    "You are not authorized to remove users from this team"
+  ]
+}
+```
+
+`DELETE /teams/307` geeft dezelfde vorm met "You are not authorized to delete this team", en
+`PUT /teams/307` met "You are not authorized to update this team". De API bewaakt de rechten dus zelf
+op teamniveau — maar niet op leesniveau, zie stap 13.
+
+## 10. `POST /teams/307/leave` als lid — 200
+
+```json
+{
+  "message": "You have successfully left the team",
+  "data": {
+    "id": 307,
+    "name": "Ledentest 839267",
+    "description": "Team voor het meten van removeUser en leave",
+    "ownerId": 94,
+    "members": [
+      { "id": 94, "name": "ledentest839267a" }
+    ],
+    "metadata": { "Icon": "group" },
+    "createdAt": "2026-08-12T13:19:36.000Z",
+    "updatedAt": "2026-08-12T13:19:36.000Z"
+  },
+  "error": null
+}
+```
+
+Het antwoord bevat het team zónder de vertrokken gebruiker. De app gebruikt dat niet: na het verlaten
+gaat de gebruiker terug naar het overzicht.
+
+## 12. Verlaten wat je niet hebt — 400
+
+```json
+{
+  "message": "Error",
+  "data": null,
+  "error": [
+    "You are not a member of this team"
+  ]
+}
+```
+
+Een 400 en geen 403; de app vertaalt dat naar `ValidatieException`.
+
+## 13. `GET /teams/307` als niet-lid — 200
+
+Het volledige team komt terug, met `ownerId`, `members` en `metadata` — precies zoals bij een lid.
+**De API schermt teamgegevens dus niet af op lidmaatschap.** De privacy-eis FR-06 is daarmee volledig
+een verantwoordelijkheid van de app: `TeamDetailController` toont de ledenlijst alleen wanneer
+`Team.isLid()` waar is, en `TeamsController` laat in het overzicht alleen de eigen teams zien.
+
+## 15. Dubbel toevoegen — 200
+
+`POST /teams/307/addUser` met een gebruiker die al lid is, geeft 200 met een ongewijzigde ledenlijst:
+geen fout en geen dubbel lid. Bruikbaar voor T-05, waar een tweede scan van dezelfde QR-code geen fout
+mag opleveren.
+
+## 16 en 17. `POST /teams/307/removeUser` als beheerder — 200
+
+```json
+{
+  "message": "User removed from the team successfully",
+  "data": {
+    "id": 307,
+    "name": "Ledentest 839267",
+    "description": "Team voor het meten van removeUser en leave",
+    "ownerId": 94,
+    "members": [
+      { "id": 94, "name": "ledentest839267a" }
+    ],
+    "metadata": { "Icon": "group" },
+    "createdAt": "2026-08-12T13:19:36.000Z",
+    "updatedAt": "2026-08-12T13:19:36.000Z"
+  },
+  "error": null
+}
+```
+
+Hetzelfde lid nog een keer verwijderen geeft opnieuw 200 met dezelfde inhoud: de aanroep is
+idempotent. Omdat het bijgewerkte team meekomt, geeft `TeamRepository.verwijderGebruiker` een `Team`
+terug in plaats van `void`.
+
+## 18. De beheerder probeert zelf te vertrekken — 400
+
+```json
+{
+  "message": "Error",
+  "data": null,
+  "error": [
+    "The team owner cannot remove themselves from the team"
+  ]
+}
+```
+
+Dit bevestigt FR-07: een beheerder kan het team niet verlaten, alleen verwijderen. Het detailscherm
+toont hem de knop "Team verlaten" daarom niet; deze 400 is het vangnet, niet de eerste verdediging.
+
+## 19 en 20. `DELETE /teams/307` als beheerder — 200, daarna 404
+
+```json
+{ "message": "Success", "data": null, "error": null }
+```
+
+Daarna geeft `GET /teams/307` een 404 met "Team not found". De documentatie noemt het een soft delete;
+van buitenaf is het team hoe dan ook weg.
+
+## Wat ook deze meting níét heeft aangetoond
+
+- Of een **event of match van een verwijderd team** mee verdwijnt, is niet gecontroleerd.
+- Of een verwijderd lid de **events van dat team** meteen kwijt is in `GET /events`, is niet gemeten.
+- `PUT /teams/{id}` is alleen als **verboden** actie aangeroepen, nooit met succes als beheerder. Het
+  antwoordformaat bij een geslaagde wijziging is dus nog onbekend.

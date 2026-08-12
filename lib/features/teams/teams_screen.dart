@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme.dart';
+import '../../data/models/models.dart';
 import '../../shared/formulier_velden.dart';
 import '../auth/auth_controller.dart';
+import 'team_detail_controller.dart';
+import 'team_detail_screen.dart';
 import 'teams_controller.dart';
 
 /// FR-05 — overzicht van de teams waar de gebruiker lid van is.
@@ -89,6 +92,26 @@ class _Inhoud extends StatelessWidget {
 
   final TeamsController controller;
 
+  /// Opent het teamdetail en verwerkt wat daar is gebeurd: na vertrekken of
+  /// verwijderen klopt het overzicht pas weer na een nieuwe ronde langs de
+  /// server (FR-07, FR-08).
+  Future<void> _openTeam(BuildContext context, Team team) async {
+    final uitkomst = await TeamDetailScreen.open(context, team);
+    if (uitkomst == null || !context.mounted) return;
+
+    await controller.laad();
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(switch (uitkomst) {
+          TeamDetailUitkomst.verlaten => 'Je hebt "${team.name}" verlaten.',
+          TeamDetailUitkomst.verwijderd => 'Team "${team.name}" is verwijderd.',
+        }),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (controller.laadt && controller.teams.isEmpty) {
@@ -154,12 +177,7 @@ class _Inhoud extends StatelessWidget {
             title: Text(team.name),
             subtitle: team.description.isEmpty ? null : Text(team.description),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // Teamdetail volgt in sprint 2 (FR-06 tot en met FR-08).
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Teamdetail volgt nog.')),
-              );
-            },
+            onTap: () => _openTeam(context, team),
           ),
         );
       },
