@@ -2,13 +2,15 @@ import 'package:flutter/foundation.dart';
 
 import '../../core/errors.dart';
 import '../../data/models/models.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/team_repository.dart';
 
 /// Houdt de teams van de gebruiker bij (FR-04, FR-05).
 class TeamsController extends ChangeNotifier {
-  TeamsController(this._repository);
+  TeamsController(this._repository, this._auth);
 
   final TeamRepository _repository;
+  final AuthRepository _auth;
 
   List<Team> _teams = const [];
   bool _laadt = false;
@@ -25,7 +27,14 @@ class TeamsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _teams = await _repository.haalTeams();
+      // `GET /teams` geeft álle teams van de hele server terug, ook die van
+      // andere gebruikers (zie docs/api-waargenomen-gedrag.md). Het overzicht
+      // toont alleen de teams waar de gebruiker bij hoort (FR-05, FR-06) —
+      // en zonder dit filter zou een verlaten team bij de eerstvolgende
+      // verversing weer opduiken (FR-07).
+      final gebruikerId = await _auth.huidigeGebruikerId();
+      final alleTeams = await _repository.haalTeams();
+      _teams = alleTeams.where((team) => team.isLid(gebruikerId)).toList();
     } on AppException catch (e) {
       _foutmelding = e.bericht;
     } catch (_) {
@@ -49,19 +58,6 @@ class TeamsController extends ChangeNotifier {
       );
       _teams = [..._teams, team];
       _foutmelding = null;
-      notifyListeners();
-      return true;
-    } on AppException catch (e) {
-      _foutmelding = e.bericht;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> verlaatTeam(int teamId) async {
-    try {
-      await _repository.verlaatTeam(teamId);
-      _teams = _teams.where((t) => t.id != teamId).toList();
       notifyListeners();
       return true;
     } on AppException catch (e) {

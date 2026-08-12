@@ -62,7 +62,10 @@ class TeamplannerApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider<TeamsController>(
-          create: (context) => TeamsController(context.read<TeamRepository>()),
+          create: (context) => TeamsController(
+            context.read<TeamRepository>(),
+            context.read<AuthRepository>(),
+          ),
         ),
       ],
       child: MaterialApp(

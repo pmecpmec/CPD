@@ -17,7 +17,11 @@ abstract interface class TeamRepository {
   });
   Future<void> verwijderTeam(int id);
   Future<void> voegGebruikerToe(int teamId, int userId);
-  Future<void> verwijderGebruiker(int teamId, int userId);
+
+  /// Verwijdert een lid en geeft het bijgewerkte team terug: de API stuurt dat
+  /// in hetzelfde antwoord mee, dus een extra `GET` is niet nodig.
+  Future<Team> verwijderGebruiker(int teamId, int userId);
+
   Future<void> verlaatTeam(int teamId);
 }
 
@@ -81,8 +85,13 @@ class ApiTeamRepository implements TeamRepository {
       _client.post('/teams/$teamId/addUser', body: {'userId': userId});
 
   @override
-  Future<void> verwijderGebruiker(int teamId, int userId) =>
-      _client.post('/teams/$teamId/removeUser', body: {'userId': userId});
+  Future<Team> verwijderGebruiker(int teamId, int userId) async {
+    final antwoord = await _client.post(
+      '/teams/$teamId/removeUser',
+      body: {'userId': userId},
+    );
+    return Team.fromJson(Map<String, dynamic>.from(antwoord as Map));
+  }
 
   @override
   Future<void> verlaatTeam(int teamId) =>
