@@ -16,9 +16,7 @@ abstract interface class AuthRepository {
 }
 
 class ApiAuthRepository implements AuthRepository {
-  ApiAuthRepository({required ApiClient client, required TokenStore tokenStore})
-    : _client = client,
-      _tokenStore = tokenStore;
+  ApiAuthRepository({required this._client, required this._tokenStore});
 
   final ApiClient _client;
   final TokenStore _tokenStore;
@@ -35,10 +33,7 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> login({
-    required String naam,
-    required String wachtwoord,
-  }) async {
+  Future<void> login({required String naam, required String wachtwoord}) async {
     final dynamic antwoord;
     try {
       antwoord = await _client.post(

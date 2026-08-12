@@ -54,7 +54,7 @@ class ApiTeamRepository implements TeamRepository {
       body: {
         'name': naam,
         'description': beschrijving,
-        'metadata': {if (iconNaam != null) 'Icon': iconNaam},
+        'metadata': {'Icon': ?iconNaam},
       },
     );
     return Team.fromJson(Map<String, dynamic>.from(antwoord as Map));

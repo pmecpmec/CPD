@@ -17,9 +17,8 @@ import 'token_store.dart';
 /// Widgets roepen deze klasse niet rechtstreeks aan; dat loopt via de
 /// repositories. Zie `CLAUDE.md`, regel 3.
 class ApiClient {
-  ApiClient({http.Client? httpClient, required TokenStore tokenStore})
-    : _http = httpClient ?? http.Client(),
-      _tokenStore = tokenStore;
+  ApiClient({http.Client? httpClient, required this._tokenStore})
+    : _http = httpClient ?? http.Client();
 
   final http.Client _http;
   final TokenStore _tokenStore;
@@ -98,7 +97,9 @@ class ApiClient {
     switch (code) {
       case 400:
       case 422:
-        throw ValidatieException(melding ?? 'De ingevoerde gegevens kloppen niet.');
+        throw ValidatieException(
+          melding ?? 'De ingevoerde gegevens kloppen niet.',
+        );
       case 401:
         bijSessieVerlopen?.call();
         throw const SessieVerlopenException();

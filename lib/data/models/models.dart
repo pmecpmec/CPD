@@ -200,7 +200,6 @@ double _alsDouble(dynamic waarde) => switch (waarde) {
   double v => v,
   int v => v.toDouble(),
   String v => double.tryParse(v) ?? 0,
-  num v => v.toDouble(),
   _ => 0,
 };
 
