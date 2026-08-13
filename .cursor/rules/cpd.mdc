@@ -1,0 +1,71 @@
+---
+description: Werkregels voor de Team Management App (vak Cross-Platform Development, Windesheim)
+alwaysApply: true
+---
+
+# Werkregels
+
+Flutter-app voor het vak Cross-Platform Development. Front-end tegen een bestaande REST-API; de back-end
+wordt niet gebouwd. Doelplatformen: **web en Android** uit één codebase. Solo-project, oplevering in de week
+van 17 augustus 2026.
+
+De taken staan in `../TAKEN-voor-agents.md`. Requirementnummers (FR-xx, NFR-xx) staan in
+`../SCOPE-en-REQUIREMENTS.md`. Endpoints en het antwoordformaat in `../API-overzicht.md`.
+
+## Taal
+
+- **Nederlands** in commentaar, documentatie, commit-berichten en alle tekst die de gebruiker ziet
+- **Engels** in klassenamen, methodenamen en variabelen
+
+## Architectuur — niet van afwijken
+
+```
+scherm  →  controller (ChangeNotifier)  →  repository  →  ApiClient  →  server
+```
+
+- Een widget doet **geen** HTTP-aanroep en kent de `ApiClient` niet
+- Elke repository heeft een interface, zodat er in tests een testdubbel voor in de plaats kan (NFR-06)
+- Nieuwe repositories en controllers worden als provider in `main.dart` gezet
+- Foutafhandeling loopt uitsluitend via de klassen in `lib/core/errors.dart`. Verzin geen losse foutteksten
+  in een scherm
+- Kleuren en lettergroottes komen uit `lib/core/theme.dart`, niet uit een widget
+
+## De API
+
+Elk antwoord zit in een envelop:
+
+```json
+{ "message": "Success", "data": { }, "error": null }
+{ "message": "Error", "data": null, "error": ["Username already taken"] }
+```
+
+`ApiClient` pakt die al uit. Repositories krijgen het kale object — bouw daar geen tweede uitpaklaag omheen.
+Het waargenomen gedrag per endpoint staat in `docs/api-waargenomen-gedrag.md`; dat is de bron, niet de
+Swagger-documentatie, want die wijkt op punten af.
+
+Twee valkuilen: inloggen gaat op **naam**, niet op e-mail. En 401 betekent zowel een verlopen sessie als een
+afgewezen inlogpoging — het onderscheid zit in de vraag of er een token meeging.
+
+## Werkwijze
+
+- **Bouw alleen wat in de taak staat.** Ontbreekt er iets, meld het en stop. Niet stilzwijgend uitbreiden;
+  de scope is de reden dat dit binnen de tijd past
+- Eén taak, één branch, één pull request naar `dev`. Branchnaam en commit-formaat staan bij de taak
+- Elke feature krijgt minimaal één test: logica als unit test, scherm als widget test
+- Maak je een technische keuze — een pakket, een patroon, een oplossing — leg die dan meteen vast als kort
+  advies in `docs/`, met het overwogen alternatief en de reden. Achteraf reconstrueren levert zwakkere
+  onderbouwing op, en het adviesrapport is een apart beoordeeld onderdeel
+
+## Klaar is pas klaar als
+
+- `flutter analyze` geeft **geen enkele** waarschuwing
+- `dart format .` is gedraaid — de CI faalt anders op de formatteerstap
+- `flutter test` is groen, inclusief de nieuwe tests
+- De functionaliteit is geprobeerd op **web** én **Android**. Verschillen tussen de platformen horen in
+  `docs/platformverschillen.md`, niet in een commentaarregel
+- De code staat op een branch met een pull request naar `dev`
+
+## Buiten scope
+
+Kaartweergave in de app, pushmeldingen, offline gebruik en caching, profielbeheer, statistieken,
+meertaligheid. Deze horen als Won't have in het adviesrapport en worden niet gebouwd.
