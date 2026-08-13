@@ -6,6 +6,7 @@ import '../../data/models/models.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/team_repository.dart';
 import '../../shared/formulier_velden.dart';
+import 'qr_invite_dialog.dart';
 import 'team_detail_controller.dart';
 
 /// FR-06, FR-07, FR-08 — één team met zijn leden.
@@ -347,12 +348,14 @@ class _Acties extends StatelessWidget {
       children: [
         if (controller.isBeheerder) ...[
           FilledButton.tonalIcon(
+            // Alleen de beheerder nodigt uit (FR-09); de dialoog toont de code
+            // en heeft daarvoor niets meer nodig dan het team-id.
             onPressed: bezig
                 ? null
-                : () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('De QR-uitnodiging volgt nog.'),
-                    ),
+                : () => QrInviteDialog.toon(
+                    context,
+                    teamId: controller.teamId,
+                    teamNaam: controller.naam,
                   ),
             icon: const Icon(Icons.qr_code_2),
             label: const Text('QR-uitnodiging'),
