@@ -154,6 +154,11 @@ void main() {
         find.widgetWithText(FilledButton, 'QR-uitnodiging'),
         findsOneWidget,
       );
+      // Events aanmaken mag alleen de beheerder (FR-11).
+      expect(
+        find.widgetWithText(FilledButton, 'Event aanmaken'),
+        findsOneWidget,
+      );
       expect(find.text('Je bent beheerder'), findsOneWidget);
       // Een beheerder kan niet vertrekken; de API weigert dat ook.
       expect(find.text('Team verlaten'), findsNothing);
@@ -175,6 +180,7 @@ void main() {
       );
       expect(find.text('Team verwijderen'), findsNothing);
       expect(find.text('QR-uitnodiging'), findsNothing);
+      expect(find.text('Event aanmaken'), findsNothing);
       expect(find.text('Je bent beheerder'), findsNothing);
       expect(find.byIcon(Icons.person_remove_outlined), findsNothing);
       // Een lid mag de volledige inhoud wél zien.
