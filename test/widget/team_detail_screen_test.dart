@@ -317,7 +317,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(OutlinedButton, 'Team verwijderen'));
+      final verwijderKnop = find.widgetWithText(
+        OutlinedButton,
+        'Team verwijderen',
+      );
+      await tester.scrollUntilVisible(verwijderKnop, 100);
+      await tester.pumpAndSettle();
+      await tester.tap(verwijderKnop);
       await tester.pumpAndSettle();
       expect(find.text('Team verwijderen?'), findsOneWidget);
 
