@@ -348,13 +348,14 @@ NavigatieRail (breed scherm): NIET GEDAAN. De emulator is smaller dan 600 logisc
 Branch: `feature/T-08-T-09-roosters`
 Commits (`git log --oneline` van deze branch ten opzichte van `origin/dev`):
 ```
+9cf2bb4 docs: rapport T-08 T-09 met analyze, test en handmatige Androidcheck
 e76ee38 T-09 Persoonlijk rooster met ontdubbelen en hoofdnavigatie
 dc8fd86 fix: teamlijst wissen bij uitloggen en laadstatus bij aanmaken
 f0862f2 T-08 Teamrooster met sortering op vaste tijd
 ```
-Daarna volgt op dezelfde branch de commit van dit rapport.
+Daarna volgt op dezelfde branch de commit die deze PR-URL vastlegt.
 
-Pull request aangemaakt: dit veld wordt na `gh pr create` ingevuld.
+Pull request aangemaakt: ja (https://github.com/pmecpmec/CPD/pull/9)
 Gemerged naar `dev`: nee
 
 STAP 0, niet op deze feature-branch:
