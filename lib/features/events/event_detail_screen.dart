@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme.dart';
 import '../../data/models/models.dart';
+import '../../shared/datum_tekst.dart';
 import 'route_starter.dart';
 
 /// FR-12 — de details van één event, met een route naar de locatie (FR-17).
@@ -71,7 +72,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             _Gegeven(
               icoon: Icons.schedule_outlined,
               label: 'Wanneer',
-              waarde: _periode(event.start, event.end),
+              waarde: periodeTekst(event.start, event.end),
             ),
             _Gegeven(
               icoon: Icons.place_outlined,
@@ -161,42 +162,3 @@ String _locatieTekst(Event event) {
   final naam = event.locatieNaam;
   return naam == null || naam.isEmpty ? coordinaten : '$naam\n$coordinaten';
 }
-
-/// Begin- en eindtijd in één regel. Valt het event binnen één dag, dan staat de
-/// datum er één keer: `13 augustus 2026, 15:01 – 17:01`.
-///
-/// De tijden zijn al lokaal — de API levert UTC en `Event.fromJson` rekent dat
-/// om — dus hier wordt niets meer omgezet. De app heeft geen `intl`-pakket, dus
-/// de Nederlandse maandnamen staan hieronder.
-String _periode(DateTime start, DateTime eind) {
-  final zelfdeDag =
-      start.year == eind.year &&
-      start.month == eind.month &&
-      start.day == eind.day;
-  final begin = '${_datum(start)}, ${_tijd(start)}';
-  return zelfdeDag
-      ? '$begin – ${_tijd(eind)}'
-      : '$begin – ${_datum(eind)}, ${_tijd(eind)}';
-}
-
-String _datum(DateTime moment) =>
-    '${moment.day} ${_maanden[moment.month - 1]} ${moment.year}';
-
-String _tijd(DateTime moment) =>
-    '${moment.hour.toString().padLeft(2, '0')}:'
-    '${moment.minute.toString().padLeft(2, '0')}';
-
-const List<String> _maanden = [
-  'januari',
-  'februari',
-  'maart',
-  'april',
-  'mei',
-  'juni',
-  'juli',
-  'augustus',
-  'september',
-  'oktober',
-  'november',
-  'december',
-];

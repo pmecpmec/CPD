@@ -6,6 +6,7 @@ import '../../data/models/models.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/team_repository.dart';
 import '../../shared/formulier_velden.dart';
+import '../events/event_form_screen.dart';
 import 'qr_invite_dialog.dart';
 import 'team_detail_controller.dart';
 
@@ -106,6 +107,19 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     await _rondAf(controller.verwijderTeam, TeamDetailUitkomst.verwijderd);
   }
 
+  /// Opent het formulier voor een nieuw event van dit team (FR-11).
+  Future<void> _nieuwEvent() async {
+    final event = await EventFormScreen.open(
+      context,
+      teamId: context.read<TeamDetailController>().teamId,
+    );
+    if (event == null || !mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Event "${event.title}" aangemaakt.')),
+    );
+  }
+
   Future<void> _verwijderLid(User lid) async {
     final controller = context.read<TeamDetailController>();
     final bevestigd = await _vraagBevestiging(
@@ -149,6 +163,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
             controller: controller,
             onVerlaten: _verlaatTeam,
             onVerwijderen: _verwijderTeam,
+            onNieuwEvent: _nieuwEvent,
             onLidVerwijderen: _verwijderLid,
           ),
         ),
@@ -162,12 +177,14 @@ class _Inhoud extends StatelessWidget {
     required this.controller,
     required this.onVerlaten,
     required this.onVerwijderen,
+    required this.onNieuwEvent,
     required this.onLidVerwijderen,
   });
 
   final TeamDetailController controller;
   final VoidCallback onVerlaten;
   final VoidCallback onVerwijderen;
+  final VoidCallback onNieuwEvent;
   final void Function(User lid) onLidVerwijderen;
 
   @override
@@ -204,6 +221,7 @@ class _Inhoud extends StatelessWidget {
             controller: controller,
             onVerlaten: onVerlaten,
             onVerwijderen: onVerwijderen,
+            onNieuwEvent: onNieuwEvent,
           ),
         ] else
           const _PrivacyMelding(),
@@ -332,11 +350,13 @@ class _Acties extends StatelessWidget {
     required this.controller,
     required this.onVerlaten,
     required this.onVerwijderen,
+    required this.onNieuwEvent,
   });
 
   final TeamDetailController controller;
   final VoidCallback onVerlaten;
   final VoidCallback onVerwijderen;
+  final VoidCallback onNieuwEvent;
 
   @override
   Widget build(BuildContext context) {
@@ -347,6 +367,13 @@ class _Acties extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (controller.isBeheerder) ...[
+          FilledButton.icon(
+            // Alleen de beheerder maakt events aan (FR-11).
+            onPressed: bezig ? null : onNieuwEvent,
+            icon: const Icon(Icons.event_outlined),
+            label: const Text('Event aanmaken'),
+          ),
+          const SizedBox(height: 12),
           FilledButton.tonalIcon(
             // Alleen de beheerder nodigt uit (FR-09); de dialoog toont de code
             // en heeft daarvoor niets meer nodig dan het team-id.
