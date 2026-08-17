@@ -216,6 +216,7 @@ class _NieuwTeamDialoogState extends State<_NieuwTeamDialoog> {
     title: const Text('Nieuw team'),
     content: Form(
       key: _formSleutel,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

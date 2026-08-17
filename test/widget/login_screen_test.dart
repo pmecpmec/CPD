@@ -100,4 +100,21 @@ void main() {
     );
     expect(controller.isIngelogd, isFalse);
   });
+
+  testWidgets(
+    'validatiemelding verdwijnt zodra er geldige tekst wordt ingevoerd',
+    (tester) async {
+      await tester.pumpWidget(bouwScherm(AuthController(NepAuthRepository())));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Inloggen'));
+      await tester.pump();
+
+      expect(find.text('Vul een gebruikersnaam in.'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextFormField).first, 'pedro');
+      await tester.pump();
+
+      expect(find.text('Vul een gebruikersnaam in.'), findsNothing);
+    },
+  );
 }
