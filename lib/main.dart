@@ -11,6 +11,8 @@ import 'data/repositories/team_repository.dart';
 import 'features/auth/auth_controller.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
+import 'features/schedule/my_schedule_controller.dart';
+import 'features/teams/home_shell.dart';
 import 'features/teams/teams_controller.dart';
 import 'features/teams/teams_screen.dart';
 
@@ -71,6 +73,14 @@ class TeamplannerApp extends StatelessWidget {
             context.read<AuthRepository>(),
           ),
         ),
+        ChangeNotifierProvider<MyScheduleController>(
+          create: (context) => MyScheduleController(
+            eventRepository: context.read<EventRepository>(),
+            matchRepository: context.read<MatchRepository>(),
+            teamRepository: context.read<TeamRepository>(),
+            authRepository: context.read<AuthRepository>(),
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'Teamplanner',
@@ -103,7 +113,7 @@ class _Startpunt extends StatelessWidget {
         body: Center(child: CircularProgressIndicator()),
       ),
       SessieStatus.uitgelogd => const LoginScreen(),
-      SessieStatus.ingelogd => const TeamsScreen(),
+      SessieStatus.ingelogd => const HomeShell(),
     };
   }
 }

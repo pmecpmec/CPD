@@ -97,6 +97,25 @@ class RoosterItem {
   /// Sleutel om op te ontdubbelen (FR-14): dezelfde match via twee teams levert
   /// dezelfde sleutel op.
   String get sleutel => '${soort.name}:$id';
+
+  /// Voegt teamnamen toe zonder duplicaten. Gebruikt bij het ontdubbelen van
+  /// een match die via twee teams in de lijst staat (FR-14).
+  RoosterItem metExtraTeamNamen(Iterable<String> extra) {
+    final namen = [...teamNamen];
+    for (final naam in extra) {
+      if (naam.isNotEmpty && !namen.contains(naam)) namen.add(naam);
+    }
+    return RoosterItem(
+      soort: soort,
+      id: id,
+      titel: titel,
+      start: start,
+      eind: eind,
+      teamNamen: namen,
+      statusLabel: statusLabel,
+      event: event,
+    );
+  }
 }
 
 /// De status die bij [match] in het rooster hoort, gezien vanuit
@@ -165,6 +184,42 @@ RoosterVerdeling verdeelRooster(
   verleden.sort((a, b) => _opStartOplopend(b, a));
 
   return RoosterVerdeling(toekomst: toekomst, verleden: verleden);
+}
+
+/// Ontdubbelt matches op id (FR-14). Dezelfde match via twee teams wordt één
+/// item, met beide teamnamen. Events blijven ongewijzigd: die horen bij één
+/// team en komen uit `GET /events` al zonder dubbelen.
+List<RoosterItem> ontdubbelRoosterItems(List<RoosterItem> items) {
+  final resultaat = <RoosterItem>[];
+  final matchIndex = <int, int>{};
+
+  for (final item in items) {
+    if (item.soort != RoosterSoort.match) {
+      resultaat.add(item);
+      continue;
+    }
+
+    final bestaand = matchIndex[item.id];
+    if (bestaand == null) {
+      matchIndex[item.id] = resultaat.length;
+      resultaat.add(item);
+    } else {
+      resultaat[bestaand] = resultaat[bestaand].metExtraTeamNamen(
+        item.teamNamen,
+      );
+    }
+  }
+
+  return resultaat;
+}
+
+/// Naam van [teamId] in [match], uit het ingebedde `team` of `invites[].team`.
+String? matchTeamNaam(Match match, int teamId) {
+  if (match.teamId == teamId) return match.team?.name;
+  for (final invite in match.invites) {
+    if (invite.teamId == teamId) return invite.team?.name;
+  }
+  return null;
 }
 
 /// Op begintijd, en bij een gelijke begintijd op titel. Anders wisselt de orde
