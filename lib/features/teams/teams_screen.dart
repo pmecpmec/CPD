@@ -67,7 +67,12 @@ class _TeamsScreenState extends State<TeamsScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Uitloggen',
-            onPressed: () => context.read<AuthController>().logout(),
+            onPressed: () {
+              // Eerst de lijst legen, daarna uitloggen. Anders ziet de
+              // volgende gebruiker even de teams van de vorige.
+              context.read<TeamsController>().wis();
+              context.read<AuthController>().logout();
+            },
           ),
         ],
       ),
