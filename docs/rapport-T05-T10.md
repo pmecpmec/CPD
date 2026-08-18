@@ -191,10 +191,11 @@ Alles waarvan je niet zeker wist of het klopte, maar waar je toch vanuit bent ge
 Branch: `feature/T-05-T-10`
 Commits (`git log --oneline` van deze branch):
 ```
+da8b134 docs Rapport T-05 en T-10
 d8a6b8f T-10 Matches aanmaken en uitnodigingen beantwoorden
 8d3672b T-05 QR-uitnodiging scannen
 ```
-Pull request aangemaakt: ja (URL volgt na `gh pr create`)
+Pull request aangemaakt: ja, https://github.com/pmecpmec/CPD/pull/12
 Gemerged naar `dev`: nee
 
 ## 12. Voor de volgende taak
