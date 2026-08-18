@@ -157,7 +157,7 @@ NIET GEDAAN. Deze sessie heeft alleen `flutter analyze` en `flutter test` gedraa
 | ALLEEN deze vertalingen: de vier genoemde teksten. Onbekend: onvertaald. | ja | `vertaalServerFout` in `errors.dart`. |
 | Unit test: vier bekende + één onbekende. | ja | `test/unit/errors_test.dart`, vijf tests, allemaal groen. |
 | docs/rapport-acceptatiebevindingen.md volgens sjabloon. | ja | Dit bestand. |
-| Push. PR naar dev met gh. | nee | Nog niet gedaan op het moment van dit rapport. Volgt in dezelfde sessie. |
+| Push. PR naar dev met gh. | ja | Branch gepusht. PR: https://github.com/pmecpmec/CPD/pull/11 |
 
 ---
 
@@ -204,13 +204,13 @@ NIET GEDAAN. Deze sessie heeft alleen `flutter analyze` en `flutter test` gedraa
 Branch: `fix/acceptatietest-bevindingen`
 Commits (`git log --oneline` van deze branch ten opzichte van T-08-T-09):
 ```
+9268fea docs: rapport acceptatiebevindingen
 2bf831b fix: bekende API-foutmeldingen in het Nederlands
 5d85b3d fix: foutmelding wissen bij sluiten van registreren
 61fd853 fix: agenda opnieuw laden bij openen van het tabblad
 ```
-(plus deze documentatie-commit na het schrijven van het rapport)
 
-Pull request aangemaakt: nee
+Pull request aangemaakt: ja (https://github.com/pmecpmec/CPD/pull/11)
 Gemerged naar `dev`: nee
 
 ---
