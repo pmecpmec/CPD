@@ -11,6 +11,7 @@ void main() {
     required int matchId,
     required String titel,
     required String teamNaam,
+    int? teamId,
   }) => RoosterItem(
     soort: RoosterSoort.match,
     id: matchId,
@@ -18,6 +19,7 @@ void main() {
     start: start,
     eind: eind,
     teamNamen: [teamNaam],
+    teamIds: [?teamId],
     statusLabel: InviteStatus.pending.label,
   );
 
@@ -26,11 +28,13 @@ void main() {
       matchId: 33,
       titel: 'Testmatch',
       teamNaam: 'Testteam A',
+      teamId: 10,
     );
     final viaB = matchViaTeam(
       matchId: 33,
       titel: 'Testmatch',
       teamNaam: 'Testteam B',
+      teamId: 20,
     );
 
     final resultaat = ontdubbelRoosterItems([viaA, viaB]);
@@ -39,6 +43,7 @@ void main() {
     expect(resultaat.single.id, 33);
     expect(resultaat.single.soort, RoosterSoort.match);
     expect(resultaat.single.teamNamen, ['Testteam A', 'Testteam B']);
+    expect(resultaat.single.teamIds, [10, 20]);
   });
 
   test('twee verschillende matches blijven twee items', () {

@@ -24,8 +24,9 @@ class AppConfig {
 ///
 /// De API kent geen uitnodigings-endpoint: de code is volledig van de app zelf.
 /// Er staat daarom niet meer in dan het team-id, in de vorm
-/// `teamplanner:team:42`. De beheerder toont die code, de scanner leest hem en
-/// voegt zichzelf toe met `POST /teams/{id}/addUser`.
+/// `teamplanner:team:42`. Deze klasse legt alleen die vorm vast. Toevoegen via
+/// `POST /teams/{id}/addUser` weigert de API voor een gewone gebruiker (403).
+/// Zie advies A-19 en `docs/api-waargenomen-gedrag.md`, derde meting.
 ///
 /// Tonen en scannen gebruiken dezelfde twee functies, zodat de vorm maar op één
 /// plek vastligt: [bouwCode] schrijft hem, [leesTeamId] leest hem terug.
