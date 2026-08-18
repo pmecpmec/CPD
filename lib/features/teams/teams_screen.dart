@@ -5,6 +5,8 @@ import '../../core/theme.dart';
 import '../../data/models/models.dart';
 import '../../shared/formulier_velden.dart';
 import '../auth/auth_controller.dart';
+import 'qr_scan_controller.dart';
+import 'qr_scan_screen.dart';
 import 'team_detail_controller.dart';
 import 'team_detail_screen.dart';
 import 'teams_controller.dart';
@@ -56,6 +58,23 @@ class _TeamsScreenState extends State<TeamsScreen> {
     );
   }
 
+  Future<void> _scanQr() async {
+    final uitkomst = await QrScanScreen.open(context);
+    if (uitkomst == null || !mounted) return;
+
+    await context.read<TeamsController>().laad();
+    if (!mounted) return;
+
+    final tekst = switch (uitkomst) {
+      QrScanToegevoegd(:final team) => qrToegevoegdMelding(team.name),
+      QrScanAlLid(:final team) => qrAlLidMelding(team.name),
+      QrScanOngeldigeCode() || QrScanNietGevonden() || QrScanMislukt() => null,
+    };
+    if (tekst == null) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tekst)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final teams = context.watch<TeamsController>();
@@ -71,10 +90,23 @@ class _TeamsScreenState extends State<TeamsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _nieuwTeam,
-        icon: const Icon(Icons.add),
-        label: const Text('Nieuw team'),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            heroTag: 'qr-scan',
+            tooltip: 'QR-code scannen',
+            onPressed: _scanQr,
+            child: const Icon(Icons.qr_code_scanner),
+          ),
+          const SizedBox(width: 12),
+          FloatingActionButton.extended(
+            heroTag: 'nieuw-team',
+            onPressed: _nieuwTeam,
+            icon: const Icon(Icons.add),
+            label: const Text('Nieuw team'),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: teams.laad,

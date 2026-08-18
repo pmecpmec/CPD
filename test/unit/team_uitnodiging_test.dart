@@ -36,4 +36,23 @@ void main() {
       expect(TeamUitnodiging.leesTeamId(TeamUitnodiging.bouwCode(306)), 306);
     });
   });
+
+  group('TeamUitnodiging.leesTeamId', () {
+    test('leest een geldige code', () {
+      expect(TeamUitnodiging.leesTeamId('teamplanner:team:42'), 42);
+      expect(TeamUitnodiging.leesTeamId('  teamplanner:team:42  '), 42);
+    });
+
+    test('wijst drie ongeldige codes af', () {
+      expect(TeamUitnodiging.leesTeamId('https://voorbeeld.nl'), isNull);
+      expect(TeamUitnodiging.leesTeamId('teamplanner:team:'), isNull);
+      expect(TeamUitnodiging.leesTeamId('teamplanner:team:42:extra'), isNull);
+    });
+
+    test('wijst nul, negatief en ontbrekend af', () {
+      expect(TeamUitnodiging.leesTeamId('teamplanner:team:0'), isNull);
+      expect(TeamUitnodiging.leesTeamId(null), isNull);
+      expect(TeamUitnodiging.leesTeamId(''), isNull);
+    });
+  });
 }
