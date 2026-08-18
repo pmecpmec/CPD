@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../data/models/models.dart';
 import '../../shared/formulier_velden.dart';
 import '../auth/auth_controller.dart';
+import '../matches/match_invites_screen.dart';
 import 'qr_scan_controller.dart';
 import 'qr_scan_screen.dart';
 import 'team_detail_controller.dart';
@@ -83,6 +84,11 @@ class _TeamsScreenState extends State<TeamsScreen> {
       appBar: AppBar(
         title: const Text('Mijn teams'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.sports_outlined),
+            tooltip: 'Matches en uitnodigingen',
+            onPressed: () => MatchInvitesScreen.open(context),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Uitloggen',
