@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../schedule/my_schedule_controller.dart';
 import '../schedule/my_schedule_screen.dart';
 import 'teams_screen.dart';
 
@@ -47,6 +49,15 @@ class _HomeShellState extends State<HomeShell> {
     ),
   ];
 
+  /// IndexedStack houdt beide schermen in leven, dus [MyScheduleScreen.initState]
+  /// draait maar één keer. Bij een wissel naar Agenda opnieuw laden (FR-14).
+  void _kiesBestemming(int index) {
+    setState(() => _index = index);
+    if (index == 1) {
+      context.read<MyScheduleController>().laad();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final breed = MediaQuery.sizeOf(context).width >= HomeShell.breekpunt;
@@ -61,7 +72,7 @@ class _HomeShellState extends State<HomeShell> {
           children: [
             NavigationRail(
               selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
+              onDestinationSelected: _kiesBestemming,
               labelType: NavigationRailLabelType.all,
               destinations: _bestemmingenRail,
             ),
@@ -76,7 +87,7 @@ class _HomeShellState extends State<HomeShell> {
       body: inhoud,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: _kiesBestemming,
         destinations: _bestemmingenBalk,
       ),
     );
