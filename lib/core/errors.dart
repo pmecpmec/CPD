@@ -61,3 +61,15 @@ class ServerException extends AppException {
     super.bericht = 'Er ging iets mis op de server. Probeer het later opnieuw.',
   ]);
 }
+
+/// Vertaalt bekende serverteksten naar het Nederlands (NFR-03).
+/// Onbekende teksten blijven ongewijzigd.
+String vertaalServerFout(String melding) {
+  const bekend = {
+    'Username already taken': 'Deze gebruikersnaam is al in gebruik.',
+    'Invalid username or password': 'Gebruikersnaam of wachtwoord klopt niet.',
+    'Team not found': 'Dit team bestaat niet of is verwijderd.',
+    'Invalid or expired token': 'Je sessie is verlopen. Log opnieuw in.',
+  };
+  return bekend[melding] ?? melding;
+}

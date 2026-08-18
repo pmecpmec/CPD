@@ -151,7 +151,7 @@ void main() {
           isA<ValidatieException>().having(
             (e) => e.bericht,
             'bericht',
-            'Username already taken',
+            'Deze gebruikersnaam is al in gebruik.',
           ),
         ),
       );

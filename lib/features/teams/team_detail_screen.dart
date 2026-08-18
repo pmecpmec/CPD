@@ -7,6 +7,7 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/team_repository.dart';
 import '../../shared/formulier_velden.dart';
 import '../events/event_form_screen.dart';
+import '../schedule/team_schedule_screen.dart';
 import 'qr_invite_dialog.dart';
 import 'team_detail_controller.dart';
 
@@ -107,6 +108,16 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     await _rondAf(controller.verwijderTeam, TeamDetailUitkomst.verwijderd);
   }
 
+  /// Opent het rooster van dit team (FR-13).
+  Future<void> _openRooster() async {
+    final controller = context.read<TeamDetailController>();
+    await TeamScheduleScreen.open(
+      context,
+      teamId: controller.teamId,
+      teamNaam: controller.naam,
+    );
+  }
+
   /// Opent het formulier voor een nieuw event van dit team (FR-11).
   Future<void> _nieuwEvent() async {
     final event = await EventFormScreen.open(
@@ -164,6 +175,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
             onVerlaten: _verlaatTeam,
             onVerwijderen: _verwijderTeam,
             onNieuwEvent: _nieuwEvent,
+            onRooster: _openRooster,
             onLidVerwijderen: _verwijderLid,
           ),
         ),
@@ -178,6 +190,7 @@ class _Inhoud extends StatelessWidget {
     required this.onVerlaten,
     required this.onVerwijderen,
     required this.onNieuwEvent,
+    required this.onRooster,
     required this.onLidVerwijderen,
   });
 
@@ -185,6 +198,7 @@ class _Inhoud extends StatelessWidget {
   final VoidCallback onVerlaten;
   final VoidCallback onVerwijderen;
   final VoidCallback onNieuwEvent;
+  final VoidCallback onRooster;
   final void Function(User lid) onLidVerwijderen;
 
   @override
@@ -222,6 +236,7 @@ class _Inhoud extends StatelessWidget {
             onVerlaten: onVerlaten,
             onVerwijderen: onVerwijderen,
             onNieuwEvent: onNieuwEvent,
+            onRooster: onRooster,
           ),
         ] else
           const _PrivacyMelding(),
@@ -351,12 +366,14 @@ class _Acties extends StatelessWidget {
     required this.onVerlaten,
     required this.onVerwijderen,
     required this.onNieuwEvent,
+    required this.onRooster,
   });
 
   final TeamDetailController controller;
   final VoidCallback onVerlaten;
   final VoidCallback onVerwijderen;
   final VoidCallback onNieuwEvent;
+  final VoidCallback onRooster;
 
   @override
   Widget build(BuildContext context) {
@@ -366,6 +383,12 @@ class _Acties extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        OutlinedButton.icon(
+          onPressed: bezig ? null : onRooster,
+          icon: const Icon(Icons.calendar_month_outlined),
+          label: const Text('Rooster'),
+        ),
+        const SizedBox(height: 12),
         if (controller.isBeheerder) ...[
           FilledButton.icon(
             // Alleen de beheerder maakt events aan (FR-11).
