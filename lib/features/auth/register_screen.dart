@@ -40,50 +40,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (gelukt && mounted) Navigator.of(context).pop();
   }
 
+  /// Wist de fout vóór het sluiten, zodat die niet op het inlogscherm blijft
+  /// staan. AppBar-terug en systeem-terug komen beide hier terecht.
+  void _sluit() {
+    context.read<AuthController>().wisFout();
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Account aanmaken')),
-      body: SafeArea(
-        child: InhoudBegrenzer(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formSleutel,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (auth.foutmelding != null) ...[
-                    Foutmelding(auth.foutmelding!),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _sluit();
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Account aanmaken')),
+        body: SafeArea(
+          child: InhoudBegrenzer(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formSleutel,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (auth.foutmelding != null) ...[
+                      Foutmelding(auth.foutmelding!),
+                      const SizedBox(height: 16),
+                    ],
+                    NaamVeld(controller: _naam, autofocus: true),
                     const SizedBox(height: 16),
+                    WachtwoordVeld(controller: _wachtwoord),
+                    const SizedBox(height: 16),
+                    WachtwoordVeld(
+                      controller: _herhaling,
+                      label: 'Wachtwoord herhalen',
+                      onSubmitted: _verstuur,
+                      extraValidatie: (waarde) => waarde == _wachtwoord.text
+                          ? null
+                          : 'De wachtwoorden komen niet overeen.',
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: auth.bezig ? null : _verstuur,
+                      child: auth.bezig
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Account aanmaken'),
+                    ),
                   ],
-                  NaamVeld(controller: _naam, autofocus: true),
-                  const SizedBox(height: 16),
-                  WachtwoordVeld(controller: _wachtwoord),
-                  const SizedBox(height: 16),
-                  WachtwoordVeld(
-                    controller: _herhaling,
-                    label: 'Wachtwoord herhalen',
-                    onSubmitted: _verstuur,
-                    extraValidatie: (waarde) => waarde == _wachtwoord.text
-                        ? null
-                        : 'De wachtwoorden komen niet overeen.',
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: auth.bezig ? null : _verstuur,
-                    child: auth.bezig
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Account aanmaken'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
