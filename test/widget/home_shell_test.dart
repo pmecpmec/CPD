@@ -109,6 +109,27 @@ class _NepMatchRepository implements MatchRepository {
 
   @override
   Future<Match> haalMatch(int id) async => throw UnimplementedError();
+
+  @override
+  Future<Match> maakMatch({
+    required int teamId,
+    required String titel,
+    required DateTime start,
+    required DateTime eind,
+    String beschrijving = '',
+    GeoLocatie? locatie,
+    String? locatieNaam,
+    required List<int> uitgenodigdeTeamIds,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<List<MatchInvite>> haalOntvangenUitnodigingen() async => const [];
+
+  @override
+  Future<MatchInvite> beantwoordUitnodiging(
+    int inviteId,
+    InviteStatus status,
+  ) async => throw UnimplementedError();
 }
 
 /// Telt hoe vaak [laad] wordt aangeroepen, zonder de server te raken.
