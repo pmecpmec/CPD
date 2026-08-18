@@ -273,4 +273,23 @@ Web in deze ronde: niet gedraaid.
 
 ## Pipeline
 
-Nog niet. Wordt ingevuld na de merge naar `main`.
+Na merge van PR #13 naar `main`. Push-run van 18 augustus 2026.
+
+### CI (run 32087914670): groen
+
+| Job | Resultaat |
+|---|---|
+| Analyse en test | groen, 1m26s. Formattering, analyse en tests. |
+| Androidbuild | groen, 9m27s. `flutter build apk --release`. |
+| Webbuild | groen, 1m36s. `flutter build web --release`. |
+
+Waarschuwingen (geen falen): Node.js 20 deprecated op checkout. setup-java v4 deprecated op Androidbuild.
+
+### Deploy (run 32087914553): rood, bekend
+
+| Job | Resultaat |
+|---|---|
+| Webversie bouwen | rood. `flutter build web` slaagde. `actions/configure-pages@v5` faalt: Get Pages site failed, repository heeft Pages niet zo gezet. |
+| Publiceren | overgeslagen |
+
+Foutmelding: `HttpError: Not Found` op `https://docs.github.com/rest/pages/pages#get-a-apiname-pages-site`.
