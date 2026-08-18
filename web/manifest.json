@@ -1,11 +1,11 @@
 {
-    "name": "crossplatformdevelopment",
-    "short_name": "crossplatformdevelopment",
+    "name": "Teamplanner",
+    "short_name": "Teamplanner",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Teamplanner is een app om teams, evenementen en wedstrijden te plannen.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
