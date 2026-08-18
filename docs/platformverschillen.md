@@ -34,7 +34,22 @@ App: worktree van `feature/T-08-T-09-roosters` op commit `e76ee38`.
 
 5. Camera voor QR-scan. Web mag de camera alleen gebruiken via HTTPS of localhost. Android vraagt om toestemming. Dit is niet in deze ronde uitgeprobeerd. Het verschil komt uit de eerdere documentatie van de QR-uitnodiging.
 
+## Gezien op 18 augustus 2026 (SDD-screenshots)
+
+Deze ronde is de app opnieuw geopend op web (Chrome, poort 9140). Android is deze ronde niet opnieuw geopend. Wat hier over Android staat, komt uit de bestaande bestanden `android-01` tot `android-04`, vergeleken met de bijbehorende web-shots.
+
+1. Het thema verschilt. De web-shots (oude set en de nieuwe match-shots) zijn donker. De vier Android-shots zijn licht. Dezelfde schermen, andere kleuren.
+
+2. Navigatie hangt van de breedte af. Op web bij ongeveer 1037 pixels staat een NavigationRail links (Teams en Agenda). Dat is te zien op onder meer `web-04`, `web-11` en `web-17`. Op `web-13` (smal) staat een NavigationBar onderaan. Op de Android-shots staat die balk ook onderaan.
+
+3. Android toont de systeemstatusbalk (tijd, batterij) en de gebarenbalk onderaan. Op web ontbreekt dat.
+
+4. Inloggen, teamoverzicht, teamdetail en agenda tonen op beide platformen dezelfde inhoud in de oude set: dezelfde testdata (Bewijs Alpha 12537, Bewijs Beta 12537) en dezelfde knoppen op teamdetail als beheerder.
+
+5. Camera, QR-scanner en de routeknop zijn deze ronde niet opnieuw uitgeprobeerd. Het verschil `geo:` versus Google Maps is dus niet opnieuw gezien.
+
 ## Niet vergeleken
 
 - Datum- en tijdkiezer: op web zag ik de knop Wijzigen, maar ik heb de kiezer niet geopend. Op Android heb ik het eventformulier niet geopend.
 - Routeknop: op web zichtbaar op het eventdetail. Niet ingedrukt. Op Android niet geopend.
+- Matchschermen op Android: geen nieuwe Android-shots van match aanmaken, uitnodigingen of rooster met matchstatus.

@@ -832,3 +832,44 @@ van buitenaf is het team hoe dan ook weg.
 - Of een verwijderd lid de **events van dat team** meteen kwijt is in `GET /events`, is niet gemeten.
 - `PUT /teams/{id}` is alleen als **verboden** actie aangeroepen, nooit met succes als beheerder. Het
   antwoordformaat bij een geslaagde wijziging is dus nog onbekend.
+- **`POST /teams/{id}/addUser` is nooit aangeroepen door iemand anders dan de beheerder.** In beide metingen
+  hierboven stuurde de beheerder het verzoek. Zie de derde meting hieronder; daar is dit gat alsnog gedicht,
+  met een uitkomst die een requirement onderuit haalt.
+
+---
+
+# Derde meting — `addUser` vanuit de rol van het lid
+
+Gemeten op 18 augustus 2026, tijdens de tweede acceptatieronde. Volledig verslag in
+`docs/rapport-acceptatie-ronde2.md`.
+
+De eerste twee metingen lieten één vraag open: mag een gewone gebruiker zichzelf aan een team toevoegen? Dat is
+geen detail, want de scanflow van FR-10 is precies daarop gebouwd.
+
+`POST /teams/315/addUser` met `{"userId":104}`, verstuurd met het token van pedroB, die op dat moment geen lid
+was van team 315:
+
+```json
+{
+  "message": "Error",
+  "data": null,
+  "error": [
+    "You are not authorized to add users to this team"
+  ]
+}
+```
+
+Status **403**. Dezelfde aanroep met het token van pedroA, de beheerder van team 315, geeft **200** met
+`message` "User added to the team successfully" en beide gebruikers in `members`.
+
+**Conclusie.** `addUser` hoort in hetzelfde rijtje als `removeUser`, `PUT` en `DELETE`: alleen de beheerder mag
+het. De API kent geen manier waarop een gebruiker zichzelf bij een team aanmeldt. Er is wel een `leave`, maar
+geen `join`.
+
+**Gevolg.** De scanflow zoals gebouwd kan niet werken. Wie een geldige uitnodigingscode scant krijgt deze 403,
+die de app vertaalt naar "Je hebt geen rechten voor deze actie." Dat is bevinding 1 in
+`Testrapport-sprint-3.md`. Het advies om het op te lossen staat in advies 19 van het adviesrapport: de nieuwe
+gebruiker toont een code met zijn eigen id, en de beheerder scant die.
+
+**Wat deze meting níét heeft aangetoond.** De 403 is rechtstreeks op de API gemeten, niet via de app. Er is geen
+scan geweest die tot deze melding op het scherm leidde, omdat er geen code voor de camera was.
