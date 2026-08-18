@@ -23,6 +23,7 @@ class RoosterItem {
     required this.start,
     required this.eind,
     required this.teamNamen,
+    this.teamIds = const [],
     this.statusLabel,
     this.event,
   });
@@ -30,7 +31,8 @@ class RoosterItem {
   /// Bouwt een regel uit een event van één team.
   ///
   /// De teamnaam komt uit het `team`-object dat de API bij elk event meestuurt;
-  /// valt dat weg, dan blijft de regel zonder teamnaam over.
+  /// valt dat weg, dan blijft de regel zonder teamnaam over. Het team-id komt
+  /// uit [Event.teamId], dat de API altijd meestuurt.
   factory RoosterItem.vanEvent(Event event) => RoosterItem(
     soort: RoosterSoort.event,
     id: event.id,
@@ -38,6 +40,7 @@ class RoosterItem {
     start: event.start,
     eind: event.end,
     teamNamen: [if (event.team?.name != null) event.team!.name],
+    teamIds: [event.teamId],
     event: event,
   );
 
@@ -51,11 +54,19 @@ class RoosterItem {
     Match match, {
     Set<int> eigenTeamIds = const {},
   }) {
-    final betrokkenTeams = <String>[
-      if (match.team?.name != null) match.team!.name,
-      for (final invite in match.invites)
-        if (invite.team?.name != null) invite.team!.name,
-    ];
+    final betrokkenNamen = <String>[];
+    final betrokkenIds = <int>[];
+
+    void voegTeamToe(int? teamId, String? naam) {
+      if (teamId == null || betrokkenIds.contains(teamId)) return;
+      betrokkenIds.add(teamId);
+      if (naam != null && naam.isNotEmpty) betrokkenNamen.add(naam);
+    }
+
+    voegTeamToe(match.teamId, match.team?.name);
+    for (final invite in match.invites) {
+      voegTeamToe(invite.teamId, invite.team?.name);
+    }
 
     return RoosterItem(
       soort: RoosterSoort.match,
@@ -63,7 +74,8 @@ class RoosterItem {
       titel: match.title,
       start: match.start,
       eind: match.end,
-      teamNamen: betrokkenTeams,
+      teamNamen: betrokkenNamen,
+      teamIds: betrokkenIds,
       statusLabel: matchStatusLabel(match, eigenTeamIds),
     );
   }
@@ -87,6 +99,10 @@ class RoosterItem {
   /// team niet meestuurde.
   final List<String> teamNamen;
 
+  /// De ids die bij [teamNamen] horen, in dezelfde volgorde. Nodig om te
+  /// filteren: twee teams kunnen dezelfde naam hebben (FR-14).
+  final List<int> teamIds;
+
   /// Wat er over de acceptatie te melden is, of `null` bij een event.
   final String? statusLabel;
 
@@ -98,13 +114,37 @@ class RoosterItem {
   /// dezelfde sleutel op.
   String get sleutel => '${soort.name}:$id';
 
-  /// Voegt teamnamen toe zonder duplicaten. Gebruikt bij het ontdubbelen van
-  /// een match die via twee teams in de lijst staat (FR-14).
-  RoosterItem metExtraTeamNamen(Iterable<String> extra) {
+  /// Voegt teamnamen en team-ids toe zonder duplicaten. Gebruikt bij het
+  /// ontdubbelen van een match die via twee teams in de lijst staat (FR-14).
+  ///
+  /// [extraIds] en [extra] horen per index bij elkaar. Een id dat er al in
+  /// zit wordt overgeslagen, net als een lege of dubbele naam.
+  RoosterItem metExtraTeamNamen(
+    Iterable<String> extra, {
+    Iterable<int> extraIds = const [],
+  }) {
     final namen = [...teamNamen];
-    for (final naam in extra) {
-      if (naam.isNotEmpty && !namen.contains(naam)) namen.add(naam);
+    final ids = [...teamIds];
+    final extraNaamLijst = extra.toList();
+    final extraIdLijst = extraIds.toList();
+    final lengte = extraIdLijst.length > extraNaamLijst.length
+        ? extraIdLijst.length
+        : extraNaamLijst.length;
+
+    for (var i = 0; i < lengte; i++) {
+      final extraId = i < extraIdLijst.length ? extraIdLijst[i] : null;
+      final extraNaam = i < extraNaamLijst.length ? extraNaamLijst[i] : null;
+      if (extraId != null) {
+        if (ids.contains(extraId)) continue;
+        ids.add(extraId);
+      }
+      if (extraNaam != null &&
+          extraNaam.isNotEmpty &&
+          !namen.contains(extraNaam)) {
+        namen.add(extraNaam);
+      }
     }
+
     return RoosterItem(
       soort: soort,
       id: id,
@@ -112,6 +152,7 @@ class RoosterItem {
       start: start,
       eind: eind,
       teamNamen: namen,
+      teamIds: ids,
       statusLabel: statusLabel,
       event: event,
     );
@@ -206,6 +247,7 @@ List<RoosterItem> ontdubbelRoosterItems(List<RoosterItem> items) {
     } else {
       resultaat[bestaand] = resultaat[bestaand].metExtraTeamNamen(
         item.teamNamen,
+        extraIds: item.teamIds,
       );
     }
   }
