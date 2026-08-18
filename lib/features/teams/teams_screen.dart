@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../data/models/models.dart';
 import '../../shared/formulier_velden.dart';
 import '../auth/auth_controller.dart';
+import '../schedule/my_schedule_controller.dart';
 import 'team_detail_controller.dart';
 import 'team_detail_screen.dart';
 import 'teams_controller.dart';
@@ -67,7 +68,17 @@ class _TeamsScreenState extends State<TeamsScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Uitloggen',
-            onPressed: () => context.read<AuthController>().logout(),
+            onPressed: () {
+              // Eerst de lijsten legen, daarna uitloggen. Anders ziet de
+              // volgende gebruiker even de teams of de agenda van de vorige.
+              context.read<TeamsController>().wis();
+              try {
+                context.read<MyScheduleController>().wis();
+              } on ProviderNotFoundException {
+                // Buiten de hoofdnavigatie is er geen agenda-controller.
+              }
+              context.read<AuthController>().logout();
+            },
           ),
         ],
       ),

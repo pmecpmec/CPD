@@ -6,10 +6,13 @@ import 'data/api/api_client.dart';
 import 'data/api/token_store.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/event_repository.dart';
+import 'data/repositories/match_repository.dart';
 import 'data/repositories/team_repository.dart';
 import 'features/auth/auth_controller.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
+import 'features/schedule/my_schedule_controller.dart';
+import 'features/teams/home_shell.dart';
 import 'features/teams/teams_controller.dart';
 import 'features/teams/teams_screen.dart';
 
@@ -50,6 +53,9 @@ class TeamplannerApp extends StatelessWidget {
         Provider<EventRepository>(
           create: (context) => ApiEventRepository(context.read<ApiClient>()),
         ),
+        Provider<MatchRepository>(
+          create: (context) => ApiMatchRepository(context.read<ApiClient>()),
+        ),
         ChangeNotifierProvider<AuthController>(
           create: (context) {
             final controller = AuthController(context.read<AuthRepository>());
@@ -65,6 +71,14 @@ class TeamplannerApp extends StatelessWidget {
           create: (context) => TeamsController(
             context.read<TeamRepository>(),
             context.read<AuthRepository>(),
+          ),
+        ),
+        ChangeNotifierProvider<MyScheduleController>(
+          create: (context) => MyScheduleController(
+            eventRepository: context.read<EventRepository>(),
+            matchRepository: context.read<MatchRepository>(),
+            teamRepository: context.read<TeamRepository>(),
+            authRepository: context.read<AuthRepository>(),
           ),
         ),
       ],
@@ -99,7 +113,7 @@ class _Startpunt extends StatelessWidget {
         body: Center(child: CircularProgressIndicator()),
       ),
       SessieStatus.uitgelogd => const LoginScreen(),
-      SessieStatus.ingelogd => const TeamsScreen(),
+      SessieStatus.ingelogd => const HomeShell(),
     };
   }
 }

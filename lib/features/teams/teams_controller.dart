@@ -45,25 +45,39 @@ class TeamsController extends ChangeNotifier {
     }
   }
 
+  /// Maakt de lijst en de foutmelding leeg. Nodig bij uitloggen: anders ziet
+  /// de volgende gebruiker even de teams van de vorige, omdat de spinner alleen
+  /// verschijnt bij een lege lijst.
+  void wis() {
+    _teams = const [];
+    _foutmelding = null;
+    _laadt = false;
+    notifyListeners();
+  }
+
   /// Maakt een team aan en zet het meteen in de lijst, zodat de gebruiker het
   /// resultaat ziet zonder op een nieuwe ronde langs de server te wachten.
   Future<bool> maakTeam({
     required String naam,
     String beschrijving = '',
   }) async {
+    _laadt = true;
+    _foutmelding = null;
+    notifyListeners();
+
     try {
       final team = await _repository.maakTeam(
         naam: naam,
         beschrijving: beschrijving,
       );
       _teams = [..._teams, team];
-      _foutmelding = null;
-      notifyListeners();
       return true;
     } on AppException catch (e) {
       _foutmelding = e.bericht;
-      notifyListeners();
       return false;
+    } finally {
+      _laadt = false;
+      notifyListeners();
     }
   }
 }
