@@ -117,7 +117,7 @@ void main() {
           isA<ValidatieException>().having(
             (e) => e.bericht,
             'bericht',
-            'Username already taken',
+            'Deze gebruikersnaam is al in gebruik.',
           ),
         ),
       );
@@ -144,7 +144,7 @@ void main() {
         isA<ValidatieException>().having(
           (e) => e.bericht,
           'bericht',
-          'Username already taken\nPassword too short',
+          'Deze gebruikersnaam is al in gebruik.\nPassword too short',
         ),
       ),
     );
@@ -169,7 +169,7 @@ void main() {
         isA<ValidatieException>().having(
           (e) => e.bericht,
           'bericht',
-          'Team not found',
+          'Dit team bestaat niet of is verwijderd.',
         ),
       ),
     );
@@ -192,7 +192,7 @@ void main() {
         isA<ValidatieException>().having(
           (e) => e.bericht,
           'bericht',
-          'Team not found',
+          'Dit team bestaat niet of is verwijderd.',
         ),
       ),
     );

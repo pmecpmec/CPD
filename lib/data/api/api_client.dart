@@ -117,7 +117,9 @@ class ApiClient {
           melding ?? const GeenRechtenException().bericht,
         );
       case 404:
-        throw const NietGevondenException();
+        throw NietGevondenException(
+          melding ?? const NietGevondenException().bericht,
+        );
       default:
         throw const ServerException();
     }
@@ -154,7 +156,7 @@ class ApiClient {
 
       final melding = data['message'];
       if (melding is String && melding.isNotEmpty && melding != 'Error') {
-        return melding;
+        return vertaalServerFout(melding);
       }
     } on FormatException {
       return null;
@@ -169,13 +171,14 @@ class ApiClient {
   String? _leesFoutveld(dynamic waarde) {
     if (waarde is String) {
       final tekst = waarde.trim();
-      return tekst.isEmpty ? null : tekst;
+      return tekst.isEmpty ? null : vertaalServerFout(tekst);
     }
     if (waarde is List) {
       final teksten = waarde
           .whereType<String>()
           .map((tekst) => tekst.trim())
-          .where((tekst) => tekst.isNotEmpty);
+          .where((tekst) => tekst.isNotEmpty)
+          .map(vertaalServerFout);
       if (teksten.isEmpty) return null;
       return teksten.join('\n');
     }
