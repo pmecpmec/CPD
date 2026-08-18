@@ -70,7 +70,10 @@ class _TeamsScreenState extends State<TeamsScreen> {
     final tekst = switch (uitkomst) {
       QrScanToegevoegd(:final team) => qrToegevoegdMelding(team.name),
       QrScanAlLid(:final team) => qrAlLidMelding(team.name),
-      QrScanOngeldigeCode() || QrScanNietGevonden() || QrScanMislukt() => null,
+      QrScanOngeldigeCode() ||
+      QrScanNietGevonden() ||
+      QrScanMislukt() ||
+      QrScanBezig() => null,
     };
     if (tekst == null) return;
 

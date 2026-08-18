@@ -16,6 +16,12 @@ final class QrScanOngeldigeCode extends QrScanVerwerking {
   const QrScanOngeldigeCode();
 }
 
+/// Er loopt al een verwerking. Geen fout: de camera vuurt dezelfde code
+/// tientallen keren per seconde.
+final class QrScanBezig extends QrScanVerwerking {
+  const QrScanBezig();
+}
+
 /// Het team-id uit de code bestaat niet (of is verwijderd).
 final class QrScanNietGevonden extends QrScanVerwerking {
   const QrScanNietGevonden();
@@ -67,7 +73,7 @@ class QrScanController extends ChangeNotifier {
   Future<QrScanVerwerking> verwerkCode(String? code) async {
     final teamId = TeamUitnodiging.leesTeamId(code);
     if (teamId == null) return const QrScanOngeldigeCode();
-    if (_bezig) return const QrScanOngeldigeCode();
+    if (_bezig) return const QrScanBezig();
 
     _bezig = true;
     notifyListeners();

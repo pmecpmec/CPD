@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:crossplatformdevelopment/core/errors.dart';
 import 'package:crossplatformdevelopment/data/models/models.dart';
 import 'package:crossplatformdevelopment/data/repositories/auth_repository.dart';
@@ -53,6 +55,28 @@ void main() {
     expect(teams.toegevoegde, isEmpty);
   });
 
+  test('tweede code tijdens verwerking is geen ongeldige code', () async {
+    teams.wachtOpHaalTeam = Completer<void>();
+    teams.teamOpId[42] = const Team(
+      id: 42,
+      name: 'Scanclub',
+      ownerId: 9,
+      members: [User(id: 9, name: 'Beheerder')],
+    );
+
+    final eerste = controller.verwerkCode('teamplanner:team:42');
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.bezig, isTrue);
+
+    final tweede = await controller.verwerkCode('teamplanner:team:99');
+    expect(tweede, isA<QrScanBezig>());
+    expect(tweede, isNot(isA<QrScanOngeldigeCode>()));
+
+    teams.wachtOpHaalTeam!.complete();
+    final eersteUitkomst = await eerste;
+    expect(eersteUitkomst, isA<QrScanToegevoegd>());
+  });
+
   test('meldt het wanneer het team niet bestaat', () async {
     teams.ontbreekt = true;
 
@@ -72,10 +96,13 @@ class NepTeamRepository implements TeamRepository {
   final List<({int teamId, int userId})> toegevoegde = [];
   final List<int> opgehaaldeIds = [];
   bool ontbreekt = false;
+  Completer<void>? wachtOpHaalTeam;
 
   @override
   Future<Team> haalTeam(int id) async {
     opgehaaldeIds.add(id);
+    final wacht = wachtOpHaalTeam;
+    if (wacht != null) await wacht.future;
     if (ontbreekt) throw const NietGevondenException();
     return teamOpId[id] ?? (throw const NietGevondenException());
   }

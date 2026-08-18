@@ -117,6 +117,8 @@ class _QrScanScreenState extends State<QrScanScreen> {
     if (!mounted) return;
 
     switch (verwerking) {
+      case QrScanBezig():
+        return;
       case QrScanOngeldigeCode():
         _toonMelding(qrOngeldigeCodeMelding);
         await _scanner?.start();
