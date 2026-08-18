@@ -306,5 +306,5 @@ Beide paden bestaan niet meer.
 
 ## 7. Pull request
 
-PR-URL: volgt na `gh pr create`.
+PR-URL: https://github.com/pmecpmec/CPD/pull/16
 Gemerged: nee op het moment van dit rapport. Merge volgt alleen als de pipeline groen is.
